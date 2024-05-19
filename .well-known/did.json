@@ -1,0 +1,27 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/did/v1",
+    "https://w3id.org/security/multikey/v1"
+  ],
+  "id": "did:web:mikebryant.me.uk",
+  "verificationMethod": [
+    {
+      "id": "did:web:mikebryant.me.uk#owner",
+      "type": "Multikey",
+      "controller": "did:web:mikebryant.me.uk",
+      "publicKeyMultibase": "z6MkgbfRcwf9yiPqrZRNwgqRBygh363nups6u9ZRBALfzA4W"
+    }
+  ],
+  "authentication": [
+    "did:web:mikebryant.me.uk#owner"
+  ],
+  "assertionMethod": [
+    "did:web:mikebryant.me.uk#owner"
+  ],
+  "capabilityDelegation": [
+    "did:web:mikebryant.me.uk#owner"
+  ],
+  "capabilityInvocation": [
+    "did:web:mikebryant.me.uk#owner"
+  ]
+}
