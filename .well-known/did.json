@@ -3,6 +3,9 @@
     "https://www.w3.org/ns/did/v1",
     "https://w3id.org/security/multikey/v1"
   ],
+  "alsoKnownAs": [
+    "did:cinn25519:mike.b5uar7xtuxiyxnkog4rmblvvwpgdv5ox7zhrtqqe3mqf3qx3lytt345y"
+  ],
   "id": "did:web:mikebryant.me.uk",
   "verificationMethod": [
     {
