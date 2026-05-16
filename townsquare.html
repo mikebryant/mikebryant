@@ -1,0 +1,2533 @@
+<!DOCTYPE html>
+<!-- saved from url=(0042)https://www.epikcreations.co.uk/townsquare -->
+<html>
+
+
+
+<head>
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Townsquare – Blood on the Clocktower</title>
+  <link rel="manifest" href="https://www.epikcreations.co.uk/manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Townsquare">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#111820">
+  <style>
+    :root {
+      --bg: #111820;
+      --panel: #16213e;
+      --border: #1a3a5a;
+      --accent: #e94560;
+      --text: #eaeaea;
+      --muted: #667;
+      --green: #00cc44;
+      --white: #ffffff;
+      --purple: #9933cc;
+      --gray: #888899;
+      --red: #ff3333;
+      --blue: #4488ff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+      overscroll-behavior: none;
+      gap: 14px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      text-shadow: 0 0 24px rgba(233, 69, 96, 0.35);
+    }
+
+    /* ── Drag-compact: hide top controls so arena fills screen during drag ── */
+    body.drag-compact h1,
+    body.drag-compact #status-bar,
+    body.drag-compact .controls,
+    body.drag-compact #timer-panel {
+      display: none !important;
+    }
+
+    body.drag-compact #arena-wrap {
+      height: calc(100svh - 100px) !important;
+      aspect-ratio: unset !important;
+      max-width: 100% !important;
+    }
+
+    /* ── Status bar ── */
+    #status-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      width: 100%;
+      max-width: 720px;
+    }
+
+    #status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+
+    #status-dot.connected {
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+    }
+
+    #status-dot.connecting {
+      background: orange;
+      animation: blink 1s ease-in-out infinite;
+    }
+
+    #status-dot.error {
+      background: var(--red);
+    }
+
+    #status-text {
+      flex: 1;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .4
+      }
+    }
+
+    /* ── Top controls ── */
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+      max-width: 720px;
+    }
+
+    .controls-game {
+      border-top: 1px solid var(--border);
+      padding-top: 6px;
+    }
+
+    .controls-game button {
+      flex: 1;
+      max-width: 280px;
+      padding: 11px 20px;
+      font-size: 0.9rem;
+    }
+
+    button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: all 0.15s;
+      white-space: nowrap;
+      /* Remove 300ms tap delay on mobile */
+      touch-action: manipulation;
+      /* No blue flash on iOS tap */
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    #btn-connect {
+      background: #0f3460;
+      color: #aaccff;
+      border: 1px solid #1a5276;
+    }
+
+    #btn-connect:hover:not(:disabled) {
+      background: #1a5276;
+    }
+
+    #btn-disconnect {
+      background: #3a1010;
+      color: #ff8888;
+    }
+
+    #btn-disconnect:hover:not(:disabled) {
+      background: #551818;
+    }
+
+    #btn-sync {
+      background: #0e2a44;
+      color: var(--blue);
+      border: 1px solid #1a3d6a;
+    }
+
+    #btn-sync:hover:not(:disabled) {
+      background: #1a3a5c;
+    }
+
+    #btn-sync.syncing {
+      animation: blink .8s ease-in-out infinite;
+    }
+
+    #btn-reset {
+      background: #2e2a0a;
+      color: #f0d060;
+      border: 1px solid #554a10;
+    }
+
+    #btn-reset:hover:not(:disabled) {
+      background: #443e10;
+    }
+
+    #btn-reset-all {
+      background: #2e1a0a;
+      color: #ffaa44;
+      border: 1px solid #664420;
+    }
+
+    #btn-reset-all:hover {
+      background: #442810;
+    }
+
+    #btn-good-win {
+      background: #0a3020;
+      color: #44ee88;
+      border: 1px solid #1a6035;
+    }
+
+    #btn-good-win:hover:not(:disabled) {
+      background: #0f4528;
+    }
+
+    #btn-evil-win {
+      background: #300a0a;
+      color: #ff7777;
+      border: 1px solid #882020;
+    }
+
+    #btn-evil-win:hover:not(:disabled) {
+      background: #4a1010;
+    }
+
+    #btn-circle,
+    #btn-square {
+      background: #1a1a3a;
+      color: #9988ff;
+      border: 1px solid #3a2a6a;
+    }
+
+    #btn-circle:hover,
+    #btn-square:hover {
+      background: #262650;
+    }
+
+    #btn-swap-mode {
+      background: #1a2a1a;
+      color: #88cc88;
+      border: 1px solid #2a5a2a;
+    }
+
+    #btn-swap-mode:hover {
+      background: #223322;
+    }
+
+    #btn-swap-mode.active {
+      background: #2a5a2a;
+      color: #aaffaa;
+      border-color: #44aa44;
+      box-shadow: 0 0 8px rgba(80, 200, 80, 0.4);
+    }
+
+    /* Seat swap-mode styles */
+    .seat.swap-pick {
+      border: 2px solid #44cc44 !important;
+      box-shadow: 0 0 14px rgba(68, 200, 68, 0.6);
+    }
+
+    .seat.swap-pick .seat-token {
+      box-shadow: 0 0 16px rgba(68, 200, 68, 0.7) !important;
+    }
+
+    body.swap-mode .seat {
+      cursor: crosshair;
+    }
+
+    body.swap-mode .seat.dragging {
+      cursor: crosshair;
+    }
+
+    /* ── Seat count row ── */
+    .seat-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.85rem;
+    }
+
+    /* ── Arena ── */
+    #arena-wrap {
+      width: 100%;
+      max-width: 720px;
+      aspect-ratio: 4 / 3;
+      position: relative;
+    }
+
+    /* Mobile: let the arena fill as much vertical space as possible */
+    @media (max-width: 600px) {
+      #arena-wrap {
+        aspect-ratio: unset;
+        height: clamp(280px, calc(100svh - 300px), 700px);
+        max-width: 100%;
+      }
+    }
+
+    #arena {
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      background:
+        radial-gradient(ellipse at 50% 50%, #1c2d42 0%, #111820 65%, #0a1018 100%);
+      border: 2px solid #1e3a5a;
+      box-shadow:
+        0 0 60px rgba(0, 0, 0, .6),
+        inset 0 0 80px rgba(0, 0, 0, .4);
+      overflow: hidden;
+      /* touch-action intentionally NOT set here — background taps should scroll */
+    }
+
+    /* Faint chair-circle guide */
+    #arena::before {
+      content: '';
+      position: absolute;
+      /* ellipse scaled to the 4:3 arena, centred */
+      left: 8%;
+      right: 8%;
+      top: 10%;
+      bottom: 10%;
+      border-radius: 50%;
+      border: 1px dashed rgba(255, 255, 255, 0.07);
+      pointer-events: none;
+    }
+
+    /* ── Seat ── */
+    .seat {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: grab;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+      z-index: 1;
+      transition: z-index 0s;
+    }
+
+    .seat.dragging {
+      cursor: grabbing;
+      z-index: 50;
+    }
+
+    .seat.syncing .seat-token {
+      opacity: .5;
+    }
+
+    .seat-token {
+      width: var(--token-size, 52px);
+      height: var(--token-size, 52px);
+      border-radius: 50%;
+      background: var(--gray);
+      border: 3px solid rgba(255, 255, 255, .15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: calc(var(--token-size, 52px) * 0.33);
+      font-weight: 700;
+      color: rgba(0, 0, 0, .7);
+      transition: background .2s, box-shadow .2s, border-color .2s,
+        width .3s ease, height .3s ease, font-size .3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .5);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Disabled seat — smaller token, immediately gray, no glow */
+    .seat.disabled {
+      pointer-events: auto;
+      cursor: not-allowed;
+    }
+
+    .seat.disabled .seat-token {
+      width: calc(var(--token-size, 52px) * 0.52) !important;
+      height: calc(var(--token-size, 52px) * 0.52) !important;
+      font-size: calc(var(--token-size, 52px) * 0.18) !important;
+      background: #2a2a3a !important;
+      box-shadow: none !important;
+      border-color: #383848 !important;
+      opacity: 0.5;
+    }
+
+    .seat.disabled .seat-name {
+      color: rgba(255, 255, 255, .25);
+    }
+
+    /* State colours */
+    .seat[data-state="0"] .seat-token {
+      background: var(--gray);
+      color: rgba(0, 0, 0, .5);
+    }
+
+    .seat[data-state="1"] .seat-token {
+      background: var(--green);
+      color: rgba(0, 0, 0, .7);
+      box-shadow: 0 0 14px rgba(0, 204, 68, .55);
+    }
+
+    .seat[data-state="2"] .seat-token {
+      background: var(--white);
+      color: rgba(0, 0, 0, .7);
+      box-shadow: 0 0 14px rgba(255, 255, 255, .4);
+    }
+
+    .seat[data-state="3"] .seat-token {
+      background: var(--gray);
+      color: rgba(0, 0, 0, .5);
+    }
+
+    .seat[data-state="4"] .seat-token {
+      background: var(--purple);
+      color: rgba(255, 255, 255, .9);
+      box-shadow: 0 0 14px rgba(153, 51, 204, .55);
+    }
+
+    .seat[data-state="5"] .seat-token {
+      background: var(--white);
+      color: rgba(0, 0, 0, .7);
+      box-shadow: 0 0 14px rgba(255, 255, 255, .4);
+    }
+
+    .seat[data-state="1"] .seat-token {
+      border-color: rgba(0, 220, 80, .5);
+    }
+
+    .seat[data-state="4"] .seat-token {
+      border-color: rgba(180, 80, 255, .5);
+    }
+
+    .seat.syncing .seat-token {
+      border-color: var(--blue) !important;
+      box-shadow: 0 0 12px rgba(68, 136, 255, .6) !important;
+    }
+
+    .seat-name {
+      /* font-size must be >= 16px to prevent iOS auto-zoom on focus */
+      font-size: 16px;
+      color: rgba(255, 255, 255, .75);
+      background: rgba(0, 0, 0, .45);
+      backdrop-filter: blur(4px);
+      border: none;
+      outline: none;
+      text-align: center;
+      width: 72px;
+      border-radius: 4px;
+      padding: 2px 4px;
+      cursor: inherit;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      /* Scale it back down visually without tricking iOS */
+      transform: scale(0.7);
+      transform-origin: top center;
+      margin-bottom: -6px;
+      /* compensate for scale shrinking layout height */
+    }
+
+    .seat-name:focus {
+      background: rgba(0, 0, 0, .7);
+      border-bottom: 1px solid var(--accent);
+      cursor: text;
+    }
+
+    /* Default "Seat X" names appear dimmed/italic; real names are bright */
+    .seat:not(.named) .seat-name {
+      color: rgba(255, 255, 255, .32);
+      font-style: italic;
+    }
+
+    .seat.named .seat-name {
+      color: rgba(255, 255, 255, .9);
+      font-style: normal;
+    }
+
+    /* ── Log ── */
+    #log-wrap {
+      width: 100%;
+      max-width: 720px;
+    }
+
+    #log-toggle {
+      width: 100%;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 5px 12px;
+      font-size: 0.72rem;
+      font-family: monospace;
+      color: var(--muted);
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #log-toggle:hover {
+      background: #1c2a42;
+    }
+
+    #log-toggle .log-arrow {
+      transition: transform 0.2s;
+    }
+
+    #log-toggle.open .log-arrow {
+      transform: rotate(180deg);
+    }
+
+    #log-toggle.open {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      border-bottom-color: transparent;
+    }
+
+    #log {
+      display: none;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-bottom-left-radius: 8px;
+      border-bottom-right-radius: 8px;
+      padding: 6px 12px 8px;
+      font-size: 0.72rem;
+      font-family: monospace;
+      color: var(--muted);
+      max-height: 160px;
+      overflow-y: auto;
+    }
+
+    #log.open {
+      display: block;
+    }
+
+    #log p {
+      margin-bottom: 1px;
+    }
+
+    #log p.sent {
+      color: #5599ff;
+    }
+
+    #log p.recv {
+      color: #55cc88;
+    }
+
+    #log p.error {
+      color: var(--red);
+    }
+
+    #legend {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px 16px;
+      justify-content: center;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 0.8rem;
+      color: var(--text);
+      width: 100%;
+      max-width: 720px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-dot {
+      display: inline-block;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .legend-sep {
+      color: var(--muted);
+      font-size: 0.72rem;
+      width: 100%;
+      text-align: center;
+    }
+
+    /* Draggable legend items */
+    .legend-item[data-state] {
+      cursor: grab;
+      touch-action: none;
+      -webkit-tap-highlight-color: transparent;
+      padding: 5px 10px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .legend-item[data-state]:hover {
+      background: rgba(255, 255, 255, .06);
+      border-color: rgba(255, 255, 255, .12);
+    }
+
+    .legend-item[data-state].active {
+      opacity: 0.45;
+      cursor: grabbing;
+    }
+
+    .legend-item[data-disable] {
+      cursor: grab;
+      touch-action: none;
+      -webkit-tap-highlight-color: transparent;
+      padding: 5px 10px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+      color: #ff8888;
+    }
+
+    .legend-item[data-disable]:hover {
+      background: rgba(255, 80, 80, .08);
+      border-color: rgba(255, 80, 80, .2);
+    }
+
+    .legend-item[data-disable].active {
+      opacity: 0.45;
+      cursor: grabbing;
+    }
+
+    /* Seat highlighted as a drop target */
+    .seat.drop-target .seat-token {
+      outline: 3px solid white;
+      outline-offset: 3px;
+      box-shadow: 0 0 20px rgba(255, 255, 255, .5) !important;
+    }
+
+    /* Floating ghost dot */
+    #drag-ghost {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, .5);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, .6);
+      transform: translate(-50%, -50%);
+      display: none;
+      transition: background 0.1s;
+    }
+
+    /* ── Name pool ── */
+    #name-pool {
+      width: 100%;
+      max-width: 720px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    #name-pool-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 0.85rem;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    #name-pool-header span {
+      flex: 1;
+      min-width: 80px;
+    }
+
+    #name-input {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 16px;
+      /* prevent iOS zoom */
+      width: 160px;
+      transform: scale(0.85);
+      transform-origin: left center;
+      margin-right: -20px;
+    }
+
+    #btn-add-name {
+      background: #1a3a1a;
+      color: #88cc88;
+      border: 1px solid #2a5a2a;
+      padding: 5px 12px;
+      font-size: 0.8rem;
+    }
+
+    #btn-add-name:hover {
+      background: #244a24;
+    }
+
+    #btn-clear-pool {
+      background: #2a1a1a;
+      color: #cc8888;
+      border: 1px solid #5a2a2a;
+      padding: 5px 10px;
+      font-size: 0.8rem;
+    }
+
+    #btn-clear-pool:hover {
+      background: #3a2020;
+    }
+
+    #name-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      min-height: 34px;
+    }
+
+    #name-chips:empty::after {
+      content: 'No names yet — add some above, then drag onto a seat.';
+      color: var(--muted);
+      font-size: 0.75rem;
+      align-self: center;
+    }
+
+    .name-chip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: #1e3050;
+      color: #aaccff;
+      border: 1px solid #2a4a7a;
+      border-radius: 20px;
+      padding: 4px 10px 4px 12px;
+      font-size: 0.8rem;
+      cursor: grab;
+      touch-action: none;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      white-space: nowrap;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .name-chip:hover {
+      background: #264068;
+    }
+
+    .name-chip.active {
+      opacity: 0.4;
+      cursor: grabbing;
+    }
+
+    .name-chip-remove {
+      font-size: 0.7rem;
+      color: #7799cc;
+      cursor: pointer;
+      padding: 0 2px;
+      line-height: 1;
+      pointer-events: auto;
+    }
+
+    .name-chip-remove:hover {
+      color: #ff8888;
+    }
+
+    /* Seat highlighted as name drop target */
+    .seat.name-drop-target .seat-token {
+      outline: 3px solid #aaccff;
+      outline-offset: 3px;
+      box-shadow: 0 0 18px rgba(150, 200, 255, .5) !important;
+    }
+
+    /* Floating ghost for name drag */
+    #name-drag-ghost {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      background: #1e3050;
+      color: #aaccff;
+      border: 1px solid #4a7acc;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      white-space: nowrap;
+      transform: translate(-50%, -50%);
+      display: none;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, .6);
+    }
+
+    footer {
+      color: #334;
+      font-size: 0.7rem;
+      text-align: center;
+      padding-bottom: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      max-width: 720px;
+    }
+
+    #btn-install {
+      display: none;
+      background: #0f3460;
+      color: #aaccff;
+      border: 1px solid #1a5276;
+      padding: 8px 20px;
+      font-size: 0.85rem;
+      border-radius: 8px;
+    }
+
+    #btn-install:hover {
+      background: #1a5276;
+    }
+
+    #ios-hint {
+      display: none;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    /* ── Timer overlay (inside arena) ── */
+    #timer-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: clamp(2.8rem, 10vw, 5.5rem);
+      font-weight: 900;
+      font-family: 'Courier New', monospace;
+      color: rgba(255, 255, 255, 0.07);
+      pointer-events: none;
+      z-index: 0;
+      letter-spacing: 0.06em;
+      user-select: none;
+      white-space: nowrap;
+      transition: color 0.4s;
+    }
+
+    #timer-overlay.active {
+      color: rgba(255, 255, 255, 0.13);
+    }
+
+    #timer-overlay.warning {
+      color: rgba(255, 160, 40, 0.40);
+    }
+
+    #timer-overlay.expired {
+      color: rgba(255, 60, 60, 0.55);
+      animation: timer-pulse 0.8s ease-in-out infinite;
+    }
+
+    @keyframes timer-pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      50% {
+        opacity: .4;
+        transform: translate(-50%, -50%) scale(1.05);
+      }
+    }
+
+    /* ── Timer controls panel ── */
+    #timer-panel {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+      max-width: 720px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.82rem;
+    }
+
+    #timer-panel>span {
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    #timer-custom-input {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-size: 16px;
+      width: 68px;
+      text-align: center;
+    }
+
+    .timer-preset {
+      background: #141a28;
+      color: #8899bb;
+      border: 1px solid #1e2a44;
+      padding: 5px 10px;
+      font-size: 0.8rem;
+      border-radius: 6px;
+    }
+
+    .timer-preset:hover {
+      background: #1e2a3e;
+    }
+
+    .timer-preset.selected {
+      background: #1a3060;
+      color: #aaccff;
+      border-color: #3a5090;
+    }
+
+    #btn-timer-toggle {
+      background: #0a3030;
+      color: #44ddbb;
+      border: 1px solid #1a5040;
+      padding: 6px 16px;
+      font-size: 0.85rem;
+    }
+
+    #btn-timer-toggle:hover {
+      background: #0f4040;
+    }
+
+    #btn-timer-toggle.running {
+      background: #2a2010;
+      color: #ffcc44;
+      border-color: #664e10;
+    }
+
+    #btn-timer-reset {
+      background: #1a1a2a;
+      color: #9988bb;
+      border: 1px solid #2a2a4a;
+      padding: 6px 10px;
+      font-size: 0.82rem;
+    }
+
+    #btn-timer-reset:hover {
+      background: #242438;
+    }
+
+    /* ── Name presets ── */
+    #preset-section {
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    #preset-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    #preset-header>span {
+      flex-shrink: 0;
+    }
+
+    #preset-name-input {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 16px;
+      width: 140px;
+      transform: scale(0.85);
+      transform-origin: left center;
+      margin-right: -18px;
+    }
+
+    #btn-save-preset {
+      background: #1a2a3a;
+      color: #88aacc;
+      border: 1px solid #2a4a6a;
+      padding: 4px 10px;
+      font-size: 0.78rem;
+    }
+
+    #btn-save-preset:hover {
+      background: #243648;
+    }
+
+    #preset-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-height: 16px;
+    }
+
+    .preset-item {
+      display: flex;
+      align-items: center;
+      background: #131e30;
+      color: #7a99cc;
+      border: 1px solid #1e3050;
+      border-radius: 20px;
+      overflow: hidden;
+      font-size: 0.78rem;
+    }
+
+    .preset-item-name {
+      padding: 4px 8px 4px 12px;
+      font-weight: 600;
+    }
+
+    .preset-item-count {
+      color: #4a6a99;
+      font-size: 0.7rem;
+      padding-right: 4px;
+    }
+
+    .btn-preset-load {
+      background: #1a3050;
+      color: #88aadd;
+      border: none;
+      border-left: 1px solid #1e3050;
+      padding: 4px 8px;
+      font-size: 0.72rem;
+      cursor: pointer;
+    }
+
+    .btn-preset-load:hover {
+      background: #264070;
+      color: #aaccff;
+    }
+
+    .btn-preset-delete {
+      background: transparent;
+      color: #446699;
+      border: none;
+      border-left: 1px solid #1e3050;
+      padding: 4px 8px;
+      font-size: 0.7rem;
+      cursor: pointer;
+    }
+
+    .btn-preset-delete:hover {
+      background: #2a1010;
+      color: #ff8888;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>★ Townsquare ★</h1>
+
+  <div id="status-bar">
+    <div id="status-dot"></div>
+    <span id="status-text">Not connected</span>
+  </div>
+
+  <!-- Row 1: Connection -->
+  <div class="controls">
+    <button id="btn-connect">📶 Connect</button>
+    <button id="btn-disconnect" disabled="">Disconnect</button>
+    <button id="btn-sync" disabled="">⇵ Sync</button>
+  </div>
+
+  <!-- Row 2: Layout & names -->
+  <div class="controls">
+    <button id="btn-circle">◯ Circle</button>
+    <button id="btn-square">□ Square</button>
+    <button id="btn-swap-mode">⇄ Swap names</button>
+    <button id="btn-lock-pos">🔒 Lock positions</button>
+    <button id="btn-lock-names">📝 Lock names</button>
+    <button id="btn-reset">↺ Reset colours</button>
+    <button id="btn-reset-all">↺↺ Reset all</button>
+  </div>
+
+  <!-- Row 3: Game events -->
+  <div class="controls controls-game">
+    <button id="btn-good-win" disabled="">✨ Good team wins</button>
+    <button id="btn-evil-win" disabled="">😈 Evil team wins</button>
+  </div>
+
+
+  <!-- Timer controls -->
+  <div id="timer-panel">
+    <span>⏱ Timer</span>
+    <button class="timer-preset" data-min="2">2 min</button>
+    <button class="timer-preset" data-min="3">3 min</button>
+    <button class="timer-preset selected" data-min="5">5 min</button>
+    <button class="timer-preset" data-min="10">10 min</button>
+    <button class="timer-preset" data-min="15">15 min</button>
+    <input id="timer-custom-input" type="number" min="1" max="99" placeholder="min">
+    <button id="btn-timer-toggle">▶ Start</button>
+    <button id="btn-timer-reset">↺ Reset</button>
+  </div>
+
+  <div id="arena-wrap">
+    <div id="arena">
+      <div class="seat" data-state="0" data-idx="0" style="left: 50%; top: 14%;">
+        <div class="seat-token">1</div><input class="seat-name">
+      </div>
+      <div class="seat" data-state="0" data-idx="1" style="left: 61.7426%; top: 15.762%;">
+        <div class="seat-token">2</div><input class="seat-name">
+      </div>
+      <div class="seat" data-state="0" data-idx="2" style="left: 72.5694%; top: 21.1111%;">
+        <div class="seat-token">3</div><input class="seat-name">
+      </div>
+      <div class="seat" data-state="0" data-idx="3" style="left: 80.7426%; top: 28.8397%;">
+        <div class="seat-token">4</div><input class="seat-name">
+      </div>
+      <div class="seat" data-state="0" data-idx="4" style="left: 86.1401%; top: 38.8754%;">
+        <div class="seat-token">5</div><input class="seat-name">
+      </div>
+      <div class="seat" data-state="0" data-idx="5" style="left: 88%; top: 50%;">
+        <div class="seat-token">6</div><input class="seat-name">
+      </div>
+      <div class="seat" data-state="0" data-idx="6" style="left: 86.1401%; top: 61.1246%;">
+        <div class="seat-token">7</div><input class="seat-name">
+      </div>
+      <div class="seat" data-state="0" data-idx="7" style="left: 80.7426%; top: 71.1603%;">
+        <div class="seat-token">8</div><input class="seat-name">
+      </div>
+      <div class="seat" data-state="0" data-idx="8" style="left: 72.3358%; top: 79.1246%;">
+        <div class="seat-token">9</div><input class="seat-name">
+      </div>
+      <div class="seat" data-state="0" data-idx="9" style="left: 61.7426%; top: 84.238%;">
+        <div class="seat-token">10</div><input class="seat-name">
+      </div>
+      <div class="seat" data-state="0" data-idx="10" style="left: 50%; top: 86%;">
+        <div class="seat-token">11</div><input class="seat-name">
+      </div>
+      <div class="seat" data-state="0" data-idx="11" style="left: 38.2574%; top: 84.238%;">
+        <div class="seat-token">12</div><input class="seat-name">
+      </div>
+      <div class="seat" data-state="0" data-idx="12" style="left: 27.6642%; top: 79.1246%;">
+        <div class="seat-token">13</div><input class="seat-name">
+      </div>
+      <div class="seat" data-state="0" data-idx="13" style="left: 19.2574%; top: 71.1603%;">
+        <div class="seat-token">14</div><input class="seat-name">
+      </div>
+      <div class="seat" data-state="0" data-idx="14" style="left: 13.8599%; top: 61.1246%;">
+        <div class="seat-token">15</div><input class="seat-name">
+      </div>
+      <div class="seat" data-state="0" data-idx="15" style="left: 12%; top: 50%;">
+        <div class="seat-token">16</div><input class="seat-name">
+      </div>
+      <div class="seat" data-state="0" data-idx="16" style="left: 13.8599%; top: 38.8754%;">
+        <div class="seat-token">17</div><input class="seat-name">
+      </div>
+      <div class="seat" data-state="0" data-idx="17" style="left: 19.2574%; top: 28.8397%;">
+        <div class="seat-token">18</div><input class="seat-name">
+      </div>
+      <div class="seat" data-state="0" data-idx="18" style="left: 27.6642%; top: 20.8754%;">
+        <div class="seat-token">19</div><input class="seat-name">
+      </div>
+      <div class="seat" data-state="0" data-idx="19" style="left: 38.2574%; top: 15.762%;">
+        <div class="seat-token">20</div><input class="seat-name">
+      </div>
+      <div id="timer-overlay">05:00</div>
+    </div>
+  </div>
+
+  <div id="legend">
+    <div class="legend-item" data-state="0" title="Drag onto a seat"><span class="legend-dot"
+        style="background:#888899"></span> Dead</div>
+    <div class="legend-item" data-state="1" title="Drag onto a seat"><span class="legend-dot"
+        style="background:#00cc44"></span> Alive</div>
+    <div class="legend-item" data-state="2" title="Drag onto a seat"><span class="legend-dot"
+        style="background:#fff;border:1px solid #555"></span> Ghost vote</div>
+    <div class="legend-item" data-state="4" title="Drag onto a seat"><span class="legend-dot"
+        style="background:#9933cc"></span> Traveller</div>
+    <div class="legend-item" data-disable="" title="Drag onto a seat to disable / re-enable it">
+      <span class="legend-dot"
+        style="background:#222233;border:1px solid #555;font-size:0.65rem;display:flex;align-items:center;justify-content:center;color:#ff8888">✕</span>
+      Disable
+    </div>
+    <div class="legend-sep">Click = cycle &nbsp;·&nbsp; Drag = move &nbsp;·&nbsp; Drag status/✕ onto
+      seat = set directly</div>
+  </div>
+
+  <!-- Floating ghost that follows finger/cursor while dragging a status -->
+  <div id="drag-ghost"></div>
+  <div id="name-drag-ghost"></div>
+
+  <div id="name-pool">
+    <div id="name-pool-header">
+      <span>👤 Player names</span>
+      <input id="name-input" type="text" placeholder="Add name …" maxlength="20">
+      <button id="btn-add-name">+ Add</button>
+      <button id="btn-clear-pool">Clear pool</button>
+    </div>
+    <div id="name-chips">
+      <div class="name-chip">test<span class="name-chip-remove">✕</span></div>
+    </div>
+    <!-- Presets -->
+    <div id="preset-section">
+      <div id="preset-header">
+        <span>📁 Groups</span>
+        <input id="preset-name-input" type="text" placeholder="Group name …" maxlength="30">
+        <button id="btn-save-preset">Save current pool</button>
+      </div>
+      <div id="preset-list"><span style="color:var(--muted);font-size:0.72rem">No groups yet — fill
+          the pool and save.</span></div>
+    </div>
+  </div>
+
+  <div id="log-wrap">
+    <button id="log-toggle">📋 Debug log <span class="log-arrow">▾</span></button>
+    <div id="log">
+      <p class="info">Ready.</p>
+      <p class="info">[11:43:19] App loaded. Chrome or Edge required for Bluetooth.</p>
+    </div>
+  </div>
+
+  <footer>
+    <button id="btn-install">⬇ Install App</button>
+    <div id="ios-hint">📱 iOS: Tap <strong>Share ↑</strong> → <strong>Add to Home Screen</strong>
+    </div>
+  </footer>
+
+  <script>
+    // ── BLE ──────────────────────────────────────────────────────────────────────
+    const BLE_SERVICE = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+    const BLE_CHAR_WRITE = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
+    const BLE_CHAR_NOTIFY = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // TX: device → app
+    const DEVICE_NAME = 'Townsquare';
+    // Device debounces identical commands within 250ms — we respect that in send()
+    const BLE_DEBOUNCE_MS = 260;
+    const STATE_COUNT = 6;
+    const STORAGE_KEY = 'townsquare_v1';
+
+    // ── Connection stability ──────────────────────────────────────────────────────
+    let wakeLock = null;
+    let healthTimer = null;
+
+    async function requestWakeLock() {
+      if (!('wakeLock' in navigator)) return;
+      try {
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', () => {
+          wakeLock = null;
+          // Re-acquire if still connected (e.g. after tab comes back to foreground)
+          if (char) requestWakeLock();
+        });
+        log('Wake lock active — screen will stay on.', 'recv');
+      } catch (e) {
+        log(`Wake lock unavailable: ${e.message}`);
+      }
+    }
+
+    function releaseWakeLock() {
+      wakeLock?.release();
+      wakeLock = null;
+    }
+
+    function startHealthCheck() {
+      clearInterval(healthTimer);
+      healthTimer = setInterval(() => {
+        if (!device) return;
+        if (!device.gatt.connected) {
+          log('Health check: GATT dropped silently — reconnecting …', 'error');
+          onDisconnected();
+        }
+      }, 5000);
+    }
+
+    function stopHealthCheck() {
+      clearInterval(healthTimer);
+      healthTimer = null;
+    }
+
+    // Reconnect immediately when the tab becomes visible again
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible') return;
+      if (char) requestWakeLock(); // re-acquire wake lock (auto-released when hidden)
+      if (!char) {
+        // Lost connection while hidden — cancel any pending retry and restart cleanly
+        clearTimeout(reconnectTimer);
+        if (device) {
+          log('Tab visible — reconnecting …', 'error');
+          onDisconnected();
+        } else {
+          // No device at all (e.g. page was reloaded) — try getDevices silently
+          tryAutoConnect();
+        }
+      }
+    });
+
+    // ── App state ────────────────────────────────────────────────────────────────
+    let device = null;
+    let server = null;
+    let char = null;       // RX write characteristic
+    let charTX = null;       // TX notify characteristic
+    let syncing = false;
+    let reconnectTimer = null;
+    let reconnecting = false;
+    let manuallyDisconnected = false;
+    let _lastSentCmd = '';
+    let _lastSentAt = 0;
+    let _getStateResolve = null;     // resolves when GETSTATE response arrives
+    const seatCount = 20; // always 20 — matches the physical device
+    // seats[i] = { state:0-5, name:string, x:percent, y:percent, disabled:bool }
+    let seats = [];
+
+    // Per-seat send queue (prevents race condition on fast clicks)
+    const seatQueues = new Map();
+
+    // ── DOM ──────────────────────────────────────────────────────────────────────
+    const $arena = document.getElementById('arena');
+    const $statusDot = document.getElementById('status-dot');
+    const $statusText = document.getElementById('status-text');
+    const $log = document.getElementById('log');
+    const $logToggle = document.getElementById('log-toggle');
+    $logToggle.addEventListener('click', () => {
+      const open = $log.classList.toggle('open');
+      $logToggle.classList.toggle('open', open);
+      if (open) $log.scrollTop = $log.scrollHeight;
+    });
+    const $btnConnect = document.getElementById('btn-connect');
+    const $btnDisconn = document.getElementById('btn-disconnect');
+    const $btnSync = document.getElementById('btn-sync');
+    const $btnReset = document.getElementById('btn-reset');
+    const $btnResetAll = document.getElementById('btn-reset-all');
+    const $btnGood = document.getElementById('btn-good-win');
+    const $btnEvil = document.getElementById('btn-evil-win');
+    const $btnCircle = document.getElementById('btn-circle');
+    const $btnSquare = document.getElementById('btn-square');
+    const $btnSwapMode = document.getElementById('btn-swap-mode');
+    const $btnLockPos = document.getElementById('btn-lock-pos');
+    const $btnLockNames = document.getElementById('btn-lock-names');
+
+    // ── Logging ──────────────────────────────────────────────────────────────────
+    function log(msg, cls = 'info') {
+      const p = document.createElement('p');
+      p.className = cls;
+      p.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      $log.appendChild(p);
+      if ($log.classList.contains('open')) $log.scrollTop = $log.scrollHeight;
+      while ($log.children.length > 60) $log.removeChild($log.firstChild);
+    }
+
+    // ── Status ───────────────────────────────────────────────────────────────────
+    function setStatus(text, state) {
+      $statusText.textContent = text;
+      $statusDot.className = state || '';
+    }
+
+    // ── BLE helpers ──────────────────────────────────────────────────────────────
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    async function send(cmd, quiet = false) {
+      if (!char) return false;
+      try {
+        // Respect device-side debounce: same command within 250ms gets ignored by firmware
+        const gap = BLE_DEBOUNCE_MS - (Date.now() - _lastSentAt);
+        if (cmd === _lastSentCmd && gap > 0) await sleep(gap);
+
+        await char.writeValue(new TextEncoder().encode(cmd));
+        _lastSentCmd = cmd;
+        _lastSentAt = Date.now();
+        if (!quiet) log(`→ ${cmd.trim()}`, 'sent');
+        return true;
+      } catch (e) {
+        log(`Send error: ${e.message}`, 'error');
+        return false;
+      }
+    }
+
+    // ── GETSTATE: ask device for its current LED states ───────────────────────────
+    // Firmware responds on TX char with "STATE:" + 20 digits (ledStates[0..19]).
+    // Mapping: ledStates[i] = state of BTN(20-i), so our seat j = stateStr[19-j].
+    function handleNotification(event) {
+      const value = new TextDecoder().decode(event.target.value);
+      log(`← ${value.trim()}`, 'recv');
+      if (value.startsWith('STATE:') && _getStateResolve) {
+        const str = value.substring(6).trim();
+        // Convert firmware array to our seat-indexed array (seat 0 = BTN1 = ledStates[19])
+        const states = Array.from({ length: 20 }, (_, j) => parseInt(str[19 - j]) || 0);
+        _getStateResolve(states);
+        _getStateResolve = null;
+      }
+    }
+
+    async function getStateFromDevice(timeoutMs = 2000) {
+      return new Promise(resolve => {
+        _getStateResolve = resolve;
+        send('GETSTATE').catch(() => resolve(null));
+        setTimeout(() => {
+          if (_getStateResolve) { _getStateResolve = null; resolve(null); }
+        }, timeoutMs);
+      });
+    }
+
+    // ── Connect / Disconnect ──────────────────────────────────────────────────────
+
+    // Shared: raw GATT connect + service/characteristic setup
+    async function connectToGATT(dev) {
+      const srv = await dev.gatt.connect();
+      await sleep(600); // give firmware time to stabilise before service discovery
+      if (!dev.gatt.connected) throw new Error('setup-drop'); // triggers fast retry
+      const svc = await srv.getPrimaryService(BLE_SERVICE);
+      const c = await svc.getCharacteristic(BLE_CHAR_WRITE);
+      const cTX = await svc.getCharacteristic(BLE_CHAR_NOTIFY);
+      await cTX.startNotifications();
+      cTX.addEventListener('characteristicvaluechanged', handleNotification);
+      // Only assign globals once everything succeeded — avoids partial state
+      server = srv; char = c; charTX = cTX;
+    }
+
+    // Shared: post-connect state sync (GETSTATE or resync)
+    async function afterConnectSync() {
+      setStatus(`Connected to "${device.name}"`, 'connected');
+      log('Connection established!', 'recv');
+      setConnected(true);
+      requestWakeLock();
+      startHealthCheck();
+      log('Sending GETSTATE …');
+      const deviceStates = await getStateFromDevice();
+      if (deviceStates) {
+        log(`GETSTATE: ${deviceStates.join('')}`, 'recv');
+        if (deviceStates.some(s => s !== 0)) {
+          deviceStates.slice(0, seats.length).forEach((s, i) => { seats[i].state = s; });
+          seats.forEach((_, i) => renderSeatState(i));
+          save();
+          log('Device state loaded into UI.', 'recv');
+        } else {
+          log('Device all-zero → pushing UI state …');
+          await resync();
+        }
+      } else {
+        log('GETSTATE timed out → pushing UI state …', 'error');
+        await resync();
+      }
+    }
+
+    // Persistent retry loop for a known device — no picker, just keeps trying
+    function startDirectConnect(isAutoConnect = false) {
+      if (reconnecting) return; // one loop at a time
+      reconnecting = true;
+      clearTimeout(reconnectTimer);
+      let attempt = 0;
+      const try_ = async () => {
+        if (!device) { reconnecting = false; return; } // aborted by disconnect()
+        attempt++;
+        const label = isAutoConnect ? 'Auto-connect' : 'Connect';
+        setStatus(`${label} attempt ${attempt} …`, 'connecting');
+        log(`${label} attempt ${attempt} …`);
+        try {
+          await connectToGATT(device);
+          reconnecting = false;
+          await afterConnectSync();
+        } catch (e) {
+          // "setup-drop" = device connected briefly then fell off during service discovery
+          // → retry quickly; "Connection attempt failed" = not reachable yet → backoff
+          const isSetupDrop = e.message === 'setup-drop' ||
+            e.message.toLowerCase().includes('disconnected');
+          const delay = isSetupDrop
+            ? 1500
+            : Math.min(2000 * Math.pow(1.5, attempt), 20000);
+          const secs = Math.round(delay / 1000);
+          const reason = isSetupDrop ? 'connected but dropped during setup' : e.message;
+          log(`Attempt ${attempt} failed (${reason}) — retry in ${secs}s`, 'error');
+          setStatus(`Not connected — retry in ${secs}s …`, 'connecting');
+          reconnectTimer = setTimeout(try_, delay);
+        }
+      };
+      try_();
+    }
+
+    async function connect() {
+      if (!navigator.bluetooth) {
+        setStatus('Web Bluetooth not supported (Chrome/Edge required)', 'error');
+        return;
+      }
+      manuallyDisconnected = false;
+      clearTimeout(reconnectTimer);
+      reconnecting = false; // allow a fresh loop
+
+      // ① BLE still connected (paused state) — just re-enable UI and resync
+      if (char && device?.gatt.connected) {
+        setStatus(`Connected to "${device.name}"`, 'connected');
+        setConnected(true);
+        requestWakeLock();
+        startHealthCheck();
+        log('Resuming existing connection …', 'recv');
+        await resync();
+        return;
+      }
+
+      // ② Device reference alive but GATT dropped — reconnect without picker
+      if (device) {
+        device.removeEventListener('gattserverdisconnected', onDisconnected);
+        device.addEventListener('gattserverdisconnected', onDisconnected);
+        log(`Reconnecting to "${device.name}" …`);
+        startDirectConnect();
+        return;
+      }
+
+      // ② Page was reloaded — try getDevices() to avoid picker
+      if (navigator.bluetooth.getDevices) {
+        const known = await navigator.bluetooth.getDevices();
+        const d = known.find(d => d.name === DEVICE_NAME);
+        if (d) {
+          device = d;
+          device.addEventListener('gattserverdisconnected', onDisconnected);
+          log(`Known device "${device.name}" found — connecting without picker …`);
+          startDirectConnect();
+          return;
+        }
+      }
+
+      // ③ First time ever: show Bluetooth picker
+      setStatus('Opening Bluetooth picker …', 'connecting');
+      log('No known device — opening picker …');
+      try {
+        device = await navigator.bluetooth.requestDevice({
+          filters: [{ name: DEVICE_NAME }],
+          optionalServices: [BLE_SERVICE]
+        });
+        device.addEventListener('gattserverdisconnected', onDisconnected);
+        startDirectConnect();
+      } catch (e) {
+        setStatus(`Failed: ${e.message}`, 'error');
+        log(`Error: ${e.message}`, 'error');
+        device = null;
+      }
+    }
+
+    function onDisconnected() {
+      // If we're mid-setup (reconnecting=true), don't clear globals or start another loop —
+      // the running connectToGATT will catch the error and retry itself.
+      if (!reconnecting) {
+        char = null; charTX = null; server = null;
+        stopHealthCheck();
+        releaseWakeLock();
+        setConnected(false);
+      }
+      if (!device) return;
+      if (manuallyDisconnected) return;
+
+      if (!reconnecting) {
+        log('Connection lost – auto-reconnecting …', 'error');
+        startDirectConnect();
+      }
+    }
+
+    // Auto-connect on page load using previously granted device (no user gesture needed)
+    async function tryAutoConnect() {
+      if (!navigator.bluetooth?.getDevices) return;
+      const known = await navigator.bluetooth.getDevices();
+      const d = known.find(d => d.name === DEVICE_NAME);
+      if (!d) return;
+      device = d;
+      device.addEventListener('gattserverdisconnected', onDisconnected);
+      log(`Auto-connecting to known device "${device.name}" …`);
+      startDirectConnect(true);
+    }
+
+    async function disconnect() {
+      manuallyDisconnected = true;
+      clearTimeout(reconnectTimer);
+      reconnecting = false;
+      stopHealthCheck();
+      releaseWakeLock();
+      // ⚠️  Do NOT call device.gatt.disconnect() — many device firmwares stop advertising
+      // after a clean BLE disconnect and require a power cycle to reconnect.
+      // We keep the BLE link open and just pause the UI.
+      setConnected(false);
+      setStatus('Paused — BLE link kept alive. Press Connect to resume.', '');
+      log('UI paused (BLE connection kept open).', 'info');
+    }
+
+    function setConnected(on) {
+      $btnConnect.disabled = on;
+      $btnDisconn.disabled = !on;
+      $btnSync.disabled = !on;
+      $btnReset.disabled = !on;
+      $btnGood.disabled = !on;
+      $btnEvil.disabled = !on;
+    }
+
+    // On page close: disconnect for real so the device can clean up
+    window.addEventListener('beforeunload', () => {
+      if (device?.gatt.connected) device.gatt.disconnect();
+    });
+    // On page reload/reopen: auto-connect will pick it up via getDevices()
+
+    // ── Resync ───────────────────────────────────────────────────────────────────
+    // Always: RESET → known baseline of all-zero → replay UI states via round-robin.
+    // Round-robin avoids the firmware's 250ms same-command debounce (consecutive
+    // sends always target different seat numbers).
+    async function resync() {
+      if (syncing) return;
+      syncing = true;
+      $btnSync.classList.add('syncing');
+      $btnSync.textContent = '⟳ Syncing …';
+      setStatus('Syncing …', 'connecting');
+      log('─── Resync ───', 'info');
+
+      // 1. Reset device to known all-zero state
+      await send('RESET');
+      await sleep(300);
+      log('RESET sent, replaying states …');
+
+      // 2. Calculate presses needed (device is now all-zero); skip disabled seats
+      const needed = seats.map(s => s.disabled ? 0 : s.state);
+      const total = needed.reduce((a, b) => a + b, 0);
+
+      if (total === 0) {
+        log('All seats at default — nothing to send.', 'recv');
+      } else {
+        let done = 0;
+        needed.forEach((n, i) => { if (n > 0) $arena.children[i]?.classList.add('syncing'); });
+
+        // 3. Round-robin until every seat reaches its target
+        while (needed.some(n => n > 0)) {
+          for (let i = 0; i < seats.length; i++) {
+            if (needed[i] <= 0) continue;
+            await send(`BTN${i + 1}\n`, true);
+            needed[i]--;
+            done++;
+            setStatus(`Syncing … (${done}/${total})`, 'connecting');
+            if (needed[i] === 0) {
+              $arena.children[i]?.classList.remove('syncing');
+              log(`Seat ${i + 1} → ${stateLabel(seats[i].state)}`, 'sent');
+            }
+            await sleep(60);
+          }
+        }
+      }
+
+      syncing = false;
+      $btnSync.classList.remove('syncing');
+      $btnSync.textContent = '⇅ Sync';
+      setStatus(`Connected to "${device?.name ?? 'Townsquare'}"`, 'connected');
+      log('─── Resync done ───', 'recv');
+    }
+
+    // ── Commands ─────────────────────────────────────────────────────────────────
+    async function resetStates() {
+      if (!confirm('Reset all seat colours to default?')) return;
+      await send('RESET');
+      seats.forEach(s => { s.state = 0; });
+      seats.forEach((_, i) => renderSeatState(i));
+      save();
+    }
+
+    async function resetEverything() {
+      if (!confirm('Reset ALL — colours, names, disabled seats and name pool?\nThis cannot be undone.')) return;
+      await send('RESET');
+      seats.forEach((s, i) => {
+        s.state = 0;
+        s.disabled = false;
+        s.name = `Seat ${i + 1}`;
+      });
+      namePool = [];
+      buildGrid();
+      renderNamePool();
+      renderPresets();
+      save();
+      log('Full reset done.', 'info');
+    }
+
+    async function goodWin() {
+      if (!confirm('Trigger Good Team Win animation?')) return;
+      await send('SCENE1\n');
+    }
+    async function evilWin() {
+      if (!confirm('Trigger Evil Team Win animation?')) return;
+      await send('SCENE2\n');
+    }
+
+    function cycleSeat(idx) {
+      seats[idx].state = (seats[idx].state + 1) % STATE_COUNT;
+      renderSeatState(idx);
+      save();
+      const prev = seatQueues.get(idx) ?? Promise.resolve();
+      const next = prev.then(() => send(`BTN${idx + 1}\n`));
+      seatQueues.set(idx, next.catch(() => { }));
+    }
+
+    // ── Swap mode ────────────────────────────────────────────────────────────────
+    function toggleSwapMode() {
+      swapMode = !swapMode;
+      swapFirst = null;
+      $btnSwapMode.classList.toggle('active', swapMode);
+      $btnSwapMode.textContent = swapMode ? '✕ Stop swapping' : '⇄ Swap names';
+      document.body.classList.toggle('swap-mode', swapMode);
+      // Clear any lingering pick highlight
+      $arena.querySelectorAll('.swap-pick').forEach(el => el.classList.remove('swap-pick'));
+    }
+
+    function handleSwapClick(idx) {
+      if (swapFirst === null) {
+        // First pick
+        swapFirst = idx;
+        $arena.children[idx]?.classList.add('swap-pick');
+      } else if (swapFirst === idx) {
+        // Tapped same seat again → deselect
+        $arena.children[idx]?.classList.remove('swap-pick');
+        swapFirst = null;
+      } else {
+        // Second pick → swap names, but don't carry over default "Seat N" names
+        const a = swapFirst, b = idx;
+
+        // Capture originals BEFORE any mutation
+        const nameA = seats[a].name;
+        const nameB = seats[b].name;
+
+        // Real names travel with the swap; default names stay with their seat number
+        seats[a].name = isDefault(nameB) ? `Seat ${a + 1}` : nameB;
+        seats[b].name = isDefault(nameA) ? `Seat ${b + 1}` : nameA;
+
+        renderSeatName(a);
+        renderSeatName(b);
+
+        $arena.children[a]?.classList.remove('swap-pick');
+        swapFirst = null;
+        save();
+        log(`Names swapped: Seat ${a + 1} ↔ Seat ${b + 1}`, 'info');
+      }
+    }
+
+    // ── Square layout ────────────────────────────────────────────────────────────
+    function arrangeSquare() {
+      if (!confirm('Arrange all seats in a square? Current positions will be lost.')) return;
+      const n = seats.length;
+      const xMin = 12, xMax = 88;
+      const yMin = 12, yMax = 88;
+
+      // Place n seats equally spaced around the perimeter of a rectangle,
+      // clockwise starting from the top-left corner.
+      // Perimeter is divided into 4 segments of equal "weight".
+      for (let i = 0; i < n; i++) {
+        const t = i / n;          // 0 .. <1, clockwise
+        const pos = t * 4;          // 0 .. <4  (one unit per side)
+        const side = Math.floor(pos);
+        const f = pos - side;     // fraction along this side
+
+        let x, y;
+        switch (side) {
+          case 0: x = xMin + f * (xMax - xMin); y = yMin; break; // top:    L → R
+          case 1: x = xMax; y = yMin + f * (yMax - yMin); break; // right:  T → B
+          case 2: x = xMax - f * (xMax - xMin); y = yMax; break; // bottom: R → L
+          case 3: x = xMin; y = yMax - f * (yMax - yMin); break; // left:   B → T
+        }
+        seats[i].x = x;
+        seats[i].y = y;
+      }
+      renderAllPositions();
+      save();
+    }
+
+    // ── Circular layout ──────────────────────────────────────────────────────────
+    function arrangeCircle() {
+      if (!confirm('Arrange all seats in a circle? Current positions will be lost.')) return;
+      const n = seats.length;
+      for (let i = 0; i < n; i++) {
+        const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
+        // Ellipse matching the guide ring: rx=38%, ry=36% (fits the 4:3 arena)
+        seats[i].x = 50 + 38 * Math.cos(angle);
+        seats[i].y = 50 + 36 * Math.sin(angle);
+      }
+      renderAllPositions();
+      save();
+    }
+
+    // ── Render ───────────────────────────────────────────────────────────────────
+    function stateLabel(s) {
+      return ['Dead', 'Alive', 'Ghost vote', 'Dead', 'Traveller', 'Traveller †'][s] ?? '';
+    }
+
+    // ── Token sizing ─────────────────────────────────────────────────────────────
+    function updateTokenSize() {
+      const rect = $arena.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const dim = Math.min(rect.width, rect.height);
+      const size = Math.max(24, Math.min(56, Math.round(dim * 0.088)));
+      document.documentElement.style.setProperty('--token-size', size + 'px');
+    }
+    window.addEventListener('resize', updateTokenSize);
+
+    function renderSeatState(i) {
+      const el = $arena.children[i];
+      if (!el) return;
+      el.dataset.state = seats[i].state;
+      el.classList.toggle('disabled', !!seats[i].disabled);
+    }
+
+    function renderSeatName(i) {
+      const el = $arena.children[i];
+      if (!el) return;
+      el.classList.toggle('named', !isDefault(seats[i].name));
+      const inp = el.querySelector('.seat-name');
+      if (inp) inp.value = seats[i].name;
+    }
+
+    function renderSeatPosition(i) {
+      const el = $arena.children[i];
+      if (!el) return;
+      el.style.left = seats[i].x + '%';
+      el.style.top = seats[i].y + '%';
+    }
+
+    function renderAllPositions() {
+      seats.forEach((_, i) => renderSeatPosition(i));
+    }
+
+    function buildGrid() {
+      $arena.innerHTML = '';
+
+      seats.forEach((s, i) => {
+        const el = document.createElement('div');
+        el.className = 'seat';
+        el.dataset.state = s.state;
+        el.dataset.idx = i;
+        el.style.left = s.x + '%';
+        el.style.top = s.y + '%';
+
+        const token = document.createElement('div');
+        token.className = 'seat-token';
+        token.textContent = i + 1;
+
+        const nameEl = document.createElement('input');
+        nameEl.className = 'seat-name';
+        nameEl.value = s.name;
+        if (lockNames) nameEl.setAttribute('readonly', '');
+        nameEl.addEventListener('focus', () => {
+          if (isDefault(seats[i].name)) nameEl.value = '';
+        });
+        nameEl.addEventListener('blur', () => {
+          // If left empty, restore the default name
+          if (!nameEl.value.trim()) {
+            seats[i].name = `Seat ${i + 1}`;
+            nameEl.value = seats[i].name;
+            renderSeatName(i);
+            save();
+          }
+        });
+        nameEl.addEventListener('change', () => {
+          seats[i].name = nameEl.value.trim() || `Seat ${i + 1}`;
+          nameEl.value = seats[i].name;
+          renderSeatName(i);
+          save();
+        });
+        nameEl.addEventListener('pointerdown', e => e.stopPropagation()); // no drag on name
+
+        el.appendChild(token);
+        el.appendChild(nameEl);
+        if (s.disabled) el.classList.add('disabled');
+        if (!isDefault(s.name)) el.classList.add('named');
+
+        // Drag handling
+        el.addEventListener('pointerdown', e => onPointerDown(e, i));
+
+        $arena.appendChild(el);
+      });
+
+      // Timer overlay appended LAST so it doesn't shift children[idx] seat indices
+      const timerOverlay = document.createElement('div');
+      timerOverlay.id = 'timer-overlay';
+      timerOverlay.textContent = formatTime(timerRemaining);
+      $arena.appendChild(timerOverlay);
+    }
+
+    // ── Lock toggles ─────────────────────────────────────────────────────────────
+    function toggleLockPositions() {
+      lockPositions = !lockPositions;
+      $btnLockPos.classList.toggle('active', lockPositions);
+      $btnLockPos.textContent = lockPositions ? '🔒 Positions locked' : '🔓 Lock positions';
+      save();
+    }
+
+    function toggleLockNames() {
+      lockNames = !lockNames;
+      $btnLockNames.classList.toggle('active', lockNames);
+      $btnLockNames.textContent = lockNames ? '🔒 Names locked' : '📝 Lock names';
+      // Apply/remove readonly on all seat name inputs
+      $arena.querySelectorAll('.seat-name').forEach(inp => {
+        if (lockNames) inp.setAttribute('readonly', '');
+        else inp.removeAttribute('readonly');
+      });
+      save();
+    }
+
+    // ── Drag ─────────────────────────────────────────────────────────────────────
+    let drag = null;   // { idx, startClientX, startClientY, moved }
+    let swapMode = false;
+    let swapFirst = null;   // index of first selected seat
+    let lockPositions = false;
+    let lockNames = false;
+
+    function toggleSeatDisabled(idx) {
+      seats[idx].disabled = !seats[idx].disabled;
+      if (seats[idx].disabled) setSeatState(idx, 0); // turn off LED via BLE
+      renderSeatState(idx);
+      updateTokenSize();
+      save();
+      log(`Seat ${idx + 1} ${seats[idx].disabled ? 'disabled' : 'enabled'}`, 'info');
+    }
+
+    function onPointerDown(e, idx) {
+      if (e.target.tagName === 'INPUT') return;
+      e.preventDefault();
+
+      // Disabled seats: allow repositioning (unless positions locked)
+      if (seats[idx].disabled) {
+        if (lockPositions) return; // no drag, no action
+        e.currentTarget.setPointerCapture(e.pointerId);
+        drag = { idx, startClientX: e.clientX, startClientY: e.clientY, moved: false, isTouch: e.pointerType === 'touch' };
+        $arena.children[idx]?.classList.add('dragging');
+        return;
+      }
+
+      // In swap mode: select / swap seats, no dragging
+      if (swapMode) {
+        handleSwapClick(idx);
+        return;
+      }
+
+      // Lock positions: allow click-cycle but not drag
+      if (lockPositions) {
+        // Will be treated as a tap — pointerup fires cycleSeat when moved===false
+        e.currentTarget.setPointerCapture(e.pointerId);
+        drag = { idx, startClientX: e.clientX, startClientY: e.clientY, moved: false, isTouch: e.pointerType === 'touch', locked: true };
+        return;
+      }
+
+      e.currentTarget.setPointerCapture(e.pointerId);
+
+      drag = {
+        idx,
+        startClientX: e.clientX,
+        startClientY: e.clientY,
+        moved: false,
+        isTouch: e.pointerType === 'touch',
+      };
+      $arena.children[idx]?.classList.add('dragging');
+    }
+
+    $arena.addEventListener('pointermove', e => {
+      if (!drag) return;
+      if (drag.locked) return; // positions locked — don't move anything
+      e.preventDefault(); // blocks scroll while dragging a seat
+      const dx = e.clientX - drag.startClientX;
+      const dy = e.clientY - drag.startClientY;
+
+      // Higher threshold for touch (fingers naturally drift more than mouse)
+      const threshold = drag.isTouch ? 10 : 5;
+      if (!drag.moved && Math.abs(dx) < threshold && Math.abs(dy) < threshold) return;
+      drag.moved = true;
+
+      const rect = $arena.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+      // Clamp so seats stay inside the arena (a bit of margin for the token radius)
+      const m = 7;
+      seats[drag.idx].x = Math.max(m, Math.min(100 - m, x));
+      seats[drag.idx].y = Math.max(m, Math.min(100 - m, y));
+      renderSeatPosition(drag.idx);
+    });
+
+    $arena.addEventListener('pointerup', e => {
+      if (!drag) return;
+      const { idx, moved } = drag;
+      $arena.children[idx]?.classList.remove('dragging');
+      if (!moved) cycleSeat(idx);
+      else save();
+      drag = null;
+    });
+
+    $arena.addEventListener('pointercancel', () => {
+      if (!drag) return;
+      $arena.children[drag.idx]?.classList.remove('dragging');
+      drag = null;
+    });
+
+    // ── Persistence ──────────────────────────────────────────────────────────────
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ seats, namePool, lockPositions, lockNames, presets }));
+    }
+
+    function load() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return false;
+        const data = JSON.parse(raw);
+        if (data.namePool) namePool = data.namePool;
+        if (data.lockPositions) lockPositions = data.lockPositions;
+        if (data.lockNames) lockNames = data.lockNames;
+        if (data.presets) presets = data.presets;
+        seats = data.seats ?? [];
+        // Back-fill missing x/y for old saves
+        seats.forEach((s, i) => {
+          if (s.x == null || s.y == null) {
+            const angle = (i / seats.length) * 2 * Math.PI - Math.PI / 2;
+            s.x = 50 + 38 * Math.cos(angle);
+            s.y = 50 + 36 * Math.sin(angle);
+          }
+        });
+        return seats.length > 0;
+      } catch { return false; }
+    }
+
+    // ── Init seats ───────────────────────────────────────────────────────────────
+    function initSeats(n) {
+      const old = seats.slice();
+      seats = Array.from({ length: n }, (_, i) => {
+        const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
+        return {
+          state: old[i]?.state ?? 0,
+          name: old[i]?.name ?? `Seat ${i + 1}`,
+          disabled: old[i]?.disabled ?? false,
+          x: old[i]?.x ?? (50 + 38 * Math.cos(angle)),
+          y: old[i]?.y ?? (50 + 36 * Math.sin(angle)),
+        };
+      });
+    }
+
+    // ── Name pool ─────────────────────────────────────────────────────────────────
+    let namePool = [];
+
+    const $nameChips = document.getElementById('name-chips');
+    const $nameInput = document.getElementById('name-input');
+    const $btnAddName = document.getElementById('btn-add-name');
+    const $btnClearPool = document.getElementById('btn-clear-pool');
+    const $nameDragGhost = document.getElementById('name-drag-ghost');
+    let nameDrag = null; // { name, chipEl }
+
+    const isDefault = name => /^Seat \d+$/.test(name);
+
+    function renderNamePool() {
+      $nameChips.innerHTML = '';
+      namePool.forEach((name, i) => {
+        const chip = document.createElement('div');
+        chip.className = 'name-chip';
+        chip.textContent = name;
+
+        const x = document.createElement('span');
+        x.className = 'name-chip-remove';
+        x.textContent = '✕';
+        x.addEventListener('pointerdown', e => e.stopPropagation());
+        x.addEventListener('click', () => { namePool.splice(i, 1); renderNamePool(); save(); });
+        chip.appendChild(x);
+
+        // Drag to seat
+        chip.addEventListener('pointerdown', e => {
+          if (e.target === x) return;
+          e.preventDefault();
+          chip.setPointerCapture(e.pointerId);
+          nameDrag = { name, chipEl: chip };
+          startDragCompact();
+          chip.classList.add('active');
+          $nameDragGhost.textContent = name;
+          $nameDragGhost.style.left = e.clientX + 'px';
+          $nameDragGhost.style.top = e.clientY + 'px';
+          $nameDragGhost.style.display = 'block';
+        });
+
+        chip.addEventListener('pointermove', e => {
+          if (!nameDrag || nameDrag.chipEl !== chip) return;
+          e.preventDefault();
+          $nameDragGhost.style.left = e.clientX + 'px';
+          $nameDragGhost.style.top = e.clientY + 'px';
+          $arena.querySelectorAll('.name-drop-target').forEach(el => el.classList.remove('name-drop-target'));
+          const seat = seatUnderPoint(e.clientX, e.clientY);
+          if (seat && !seats[parseInt(seat.dataset.idx)].disabled)
+            seat.classList.add('name-drop-target');
+        });
+
+        chip.addEventListener('pointerup', e => {
+          if (!nameDrag || nameDrag.chipEl !== chip) return;
+          $nameDragGhost.style.display = 'none';
+          chip.classList.remove('active');
+          $arena.querySelectorAll('.name-drop-target').forEach(el => el.classList.remove('name-drop-target'));
+
+          const seat = seatUnderPoint(e.clientX, e.clientY);
+          if (seat) {
+            const idx = parseInt(seat.dataset.idx);
+            if (!seats[idx].disabled) {
+              // Return old name to pool if it was a real name
+              const old = seats[idx].name;
+              if (!isDefault(old)) namePool.push(old);
+              // Remove dragged name from pool and assign to seat
+              namePool.splice(namePool.indexOf(nameDrag.name), 1);
+              seats[idx].name = nameDrag.name;
+              renderSeatName(idx);
+              save();
+              log(`"${nameDrag.name}" → Seat ${idx + 1}`, 'info');
+            }
+          }
+          renderNamePool();
+          nameDrag = null;
+          endDragCompact();
+        });
+
+        chip.addEventListener('pointercancel', () => {
+          if (!nameDrag) return;
+          $nameDragGhost.style.display = 'none';
+          chip.classList.remove('active');
+          $arena.querySelectorAll('.name-drop-target').forEach(el => el.classList.remove('name-drop-target'));
+          nameDrag = null;
+          endDragCompact();
+          renderNamePool();
+        });
+
+        $nameChips.appendChild(chip);
+      });
+    }
+
+    function addNameToPool(name) {
+      name = name.trim();
+      if (!name || namePool.includes(name)) return;
+      namePool.push(name);
+      renderNamePool();
+      save();
+    }
+
+    $btnAddName.addEventListener('click', () => {
+      addNameToPool($nameInput.value);
+      $nameInput.value = '';
+      $nameInput.focus();
+    });
+    $nameInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { addNameToPool($nameInput.value); $nameInput.value = ''; }
+    });
+    $btnClearPool.addEventListener('click', () => {
+      if (!namePool.length) return;
+      if (!confirm('Clear all names from the pool?')) return;
+      namePool = [];
+      renderNamePool();
+      save();
+    });
+
+    // ── Set seat to a specific state (calculates minimum presses) ────────────────
+    function setSeatState(idx, targetState) {
+      const current = seats[idx].state;
+      if (current === targetState) return;
+
+      const presses = (targetState - current + STATE_COUNT) % STATE_COUNT;
+      seats[idx].state = targetState;
+      renderSeatState(idx);
+      save();
+      log(`Seat ${idx + 1} → ${stateLabel(targetState)} (${presses}×BTN)`, 'info');
+
+      // Queue the exact presses needed — reuses the same per-seat queue as cycleSeat
+      let chain = seatQueues.get(idx) ?? Promise.resolve();
+      for (let i = 0; i < presses; i++) {
+        chain = chain.then(() => send(`BTN${idx + 1}\n`));
+      }
+      seatQueues.set(idx, chain.catch(() => { }));
+    }
+
+    // ── Legend status drag ────────────────────────────────────────────────────────
+    const STATE_BG = { 0: '#888899', 1: '#00cc44', 2: '#ffffff', 3: '#888899', 4: '#9933cc', 5: '#ffffff' };
+    const $dragGhost = document.getElementById('drag-ghost');
+    let statusDrag = null; // { state, sourceEl }
+
+    function clearDropTargets() {
+      $arena.querySelectorAll('.drop-target').forEach(el => el.classList.remove('drop-target'));
+    }
+
+    function seatUnderPoint(x, y) {
+      // elementsFromPoint (plural) returns all stacked elements — no need to hide the ghost
+      for (const el of document.elementsFromPoint(x, y)) {
+        if (el.classList.contains('seat')) return el;
+        const s = el.closest?.('.seat');
+        if (s) return s;
+      }
+      return null;
+    }
+
+    // Compact mode helpers
+    function startDragCompact() { document.body.classList.add('drag-compact'); updateTokenSize(); }
+    function endDragCompact() { document.body.classList.remove('drag-compact'); updateTokenSize(); }
+
+    // Disable chip drag
+    const $disableChip = document.querySelector('.legend-item[data-disable]');
+    let disableDrag = false;
+
+    $disableChip.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      $disableChip.setPointerCapture(e.pointerId);
+      disableDrag = true;
+      startDragCompact();
+      $disableChip.classList.add('active');
+      $dragGhost.style.background = '#222233';
+      $dragGhost.style.border = '2px solid #ff6666';
+      $dragGhost.style.left = e.clientX + 'px';
+      $dragGhost.style.top = e.clientY + 'px';
+      $dragGhost.style.display = 'block';
+    });
+    $disableChip.addEventListener('pointermove', e => {
+      if (!disableDrag) return;
+      e.preventDefault();
+      $dragGhost.style.left = e.clientX + 'px';
+      $dragGhost.style.top = e.clientY + 'px';
+      clearDropTargets();
+      seatUnderPoint(e.clientX, e.clientY)?.classList.add('drop-target');
+    });
+    $disableChip.addEventListener('pointerup', e => {
+      if (!disableDrag) return;
+      $dragGhost.style.display = 'none';
+      $disableChip.classList.remove('active');
+      clearDropTargets();
+      const seat = seatUnderPoint(e.clientX, e.clientY);
+      if (seat) toggleSeatDisabled(parseInt(seat.dataset.idx));
+      disableDrag = false;
+      endDragCompact();
+    });
+    $disableChip.addEventListener('pointercancel', () => {
+      $dragGhost.style.display = 'none';
+      $disableChip.classList.remove('active');
+      clearDropTargets();
+      disableDrag = false;
+      endDragCompact();
+    });
+
+    document.querySelectorAll('.legend-item[data-state]').forEach(item => {
+      const state = parseInt(item.dataset.state);
+
+      item.addEventListener('pointerdown', e => {
+        e.preventDefault();
+        item.setPointerCapture(e.pointerId);
+        statusDrag = { state, sourceEl: item };
+        startDragCompact();
+        item.classList.add('active');
+        $dragGhost.style.background = STATE_BG[state];
+        $dragGhost.style.border = '3px solid rgba(255,255,255,.5)'; // reset from disable drag
+        $dragGhost.style.left = e.clientX + 'px';
+        $dragGhost.style.top = e.clientY + 'px';
+        $dragGhost.style.display = 'block';
+      });
+
+      item.addEventListener('pointermove', e => {
+        if (!statusDrag) return;
+        e.preventDefault();
+        $dragGhost.style.left = e.clientX + 'px';
+        $dragGhost.style.top = e.clientY + 'px';
+
+        clearDropTargets();
+        seatUnderPoint(e.clientX, e.clientY)?.classList.add('drop-target');
+      });
+
+      item.addEventListener('pointerup', e => {
+        if (!statusDrag) return;
+        $dragGhost.style.display = 'none';
+        item.classList.remove('active');
+        clearDropTargets();
+
+        const seat = seatUnderPoint(e.clientX, e.clientY);
+        if (seat) {
+          const idx = parseInt(seat.dataset.idx);
+          if (!seats[idx].disabled) setSeatState(idx, statusDrag.state);
+        }
+
+        statusDrag = null;
+        endDragCompact();
+      });
+
+      item.addEventListener('pointercancel', () => {
+        if (!statusDrag) return;
+        $dragGhost.style.display = 'none';
+        item.classList.remove('active');
+        clearDropTargets();
+        statusDrag = null;
+        endDragCompact();
+      });
+    });
+
+    // ── Timer ─────────────────────────────────────────────────────────────────────
+    let timerDuration = 5 * 60; // seconds
+    let timerRemaining = 5 * 60;
+    let timerRunning = false;
+    let timerInterval = null;
+
+    const $btnTimerToggle = document.getElementById('btn-timer-toggle');
+    const $btnTimerReset = document.getElementById('btn-timer-reset');
+    const $timerCustomInput = document.getElementById('timer-custom-input');
+
+    function formatTime(secs) {
+      const m = Math.floor(secs / 60);
+      const s = secs % 60;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function updateTimerDisplay() {
+      const el = document.getElementById('timer-overlay');
+      if (!el) return;
+      el.textContent = formatTime(timerRemaining);
+      el.className = '';
+      if (timerRemaining === 0) el.classList.add('expired');
+      else if (timerRunning && timerRemaining <= 60) el.classList.add('warning');
+      else if (timerRunning) el.classList.add('active');
+    }
+
+    function timerTick() {
+      if (timerRemaining <= 0) {
+        timerRunning = false;
+        clearInterval(timerInterval);
+        timerInterval = null;
+        $btnTimerToggle.textContent = '▶ Start';
+        $btnTimerToggle.classList.remove('running');
+        navigator.vibrate?.([200, 100, 200, 100, 400]);
+        updateTimerDisplay();
+        return;
+      }
+      timerRemaining--;
+      updateTimerDisplay();
+    }
+
+    function timerToggle() {
+      if (timerRemaining === 0) return; // expired — reset first
+      timerRunning = !timerRunning;
+      if (timerRunning) {
+        timerInterval = setInterval(timerTick, 1000);
+        $btnTimerToggle.textContent = '⏸ Pause';
+        $btnTimerToggle.classList.add('running');
+      } else {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        $btnTimerToggle.textContent = '▶ Resume';
+        $btnTimerToggle.classList.remove('running');
+      }
+      updateTimerDisplay();
+    }
+
+    function timerReset() {
+      timerRunning = false;
+      clearInterval(timerInterval);
+      timerInterval = null;
+      timerRemaining = timerDuration;
+      $btnTimerToggle.textContent = '▶ Start';
+      $btnTimerToggle.classList.remove('running');
+      updateTimerDisplay();
+    }
+
+    function timerSetMinutes(mins) {
+      timerDuration = mins * 60;
+      timerReset();
+      document.querySelectorAll('.timer-preset').forEach(btn =>
+        btn.classList.toggle('selected', parseInt(btn.dataset.min) === mins));
+      $timerCustomInput.value = '';
+    }
+
+    document.querySelectorAll('.timer-preset').forEach(btn =>
+      btn.addEventListener('click', () => timerSetMinutes(parseInt(btn.dataset.min))));
+    $btnTimerToggle.addEventListener('click', timerToggle);
+    $btnTimerReset.addEventListener('click', timerReset);
+    $timerCustomInput.addEventListener('change', () => {
+      const v = parseInt($timerCustomInput.value);
+      if (v >= 1 && v <= 99) {
+        timerDuration = v * 60;
+        timerReset();
+        document.querySelectorAll('.timer-preset').forEach(b => b.classList.remove('selected'));
+      }
+    });
+    $timerCustomInput.addEventListener('keydown', e => { if (e.key === 'Enter') $timerCustomInput.blur(); });
+
+    // ── Name presets ──────────────────────────────────────────────────────────────
+    let presets = {}; // { groupName: [name, ...] }
+
+    const $presetList = document.getElementById('preset-list');
+    const $presetNameInput = document.getElementById('preset-name-input');
+
+    function renderPresets() {
+      $presetList.innerHTML = '';
+      const keys = Object.keys(presets);
+      if (!keys.length) {
+        $presetList.innerHTML = '<span style="color:var(--muted);font-size:0.72rem">No groups yet — fill the pool and save.</span>';
+        return;
+      }
+      keys.forEach(groupName => {
+        const item = document.createElement('div');
+        item.className = 'preset-item';
+        item.innerHTML =
+          `<span class="preset-item-name">${groupName}</span>` +
+          `<span class="preset-item-count">(${presets[groupName].length})</span>` +
+          `<button class="btn-preset-load">Load</button>` +
+          `<button class="btn-preset-delete">✕</button>`;
+        item.querySelector('.btn-preset-load').addEventListener('click', () => loadPreset(groupName));
+        item.querySelector('.btn-preset-delete').addEventListener('click', () => deletePreset(groupName));
+        $presetList.appendChild(item);
+      });
+    }
+
+    function savePreset() {
+      const name = $presetNameInput.value.trim();
+      if (!name) { $presetNameInput.focus(); return; }
+      // Collect pool names + all non-default seat names, deduplicated
+      const seatNames = seats.filter(s => !isDefault(s.name)).map(s => s.name);
+      const combined = [...new Set([...namePool, ...seatNames])];
+      if (!combined.length) { alert('No names found — add names to the pool or seats first.'); return; }
+      presets[name] = combined;
+      $presetNameInput.value = '';
+      renderPresets();
+      save();
+      log(`Group "${name}" saved (${combined.length} names — pool + seats).`, 'info');
+    }
+
+    function loadPreset(groupName) {
+      const names = presets[groupName];
+      if (!names) return;
+      let added = 0;
+      names.forEach(n => { if (!namePool.includes(n)) { namePool.push(n); added++; } });
+      renderNamePool();
+      save();
+      log(`Group "${groupName}" loaded — ${added} name(s) added to pool.`, 'info');
+    }
+
+    function deletePreset(groupName) {
+      if (!confirm(`Delete group "${groupName}"?`)) return;
+      delete presets[groupName];
+      renderPresets();
+      save();
+    }
+
+    document.getElementById('btn-save-preset').addEventListener('click', savePreset);
+    $presetNameInput.addEventListener('keydown', e => { if (e.key === 'Enter') savePreset(); });
+
+    // ── Event wiring ─────────────────────────────────────────────────────────────
+    $btnConnect.addEventListener('click', connect);
+    $btnDisconn.addEventListener('click', disconnect);
+    $btnSync.addEventListener('click', resync);
+    $btnReset.addEventListener('click', resetStates);
+    $btnResetAll.addEventListener('click', resetEverything);
+    $btnGood.addEventListener('click', goodWin);
+    $btnEvil.addEventListener('click', evilWin);
+    $btnCircle.addEventListener('click', arrangeCircle);
+    $btnSquare.addEventListener('click', arrangeSquare);
+    $btnSwapMode.addEventListener('click', toggleSwapMode);
+    $btnLockPos.addEventListener('click', toggleLockPositions);
+    $btnLockNames.addEventListener('click', toggleLockNames);
+
+
+    // ── Startup ──────────────────────────────────────────────────────────────────
+    if (!load()) initSeats(seatCount);
+    buildGrid();
+    renderNamePool();
+    renderPresets();
+    // Token size needs a small delay so the arena has its final dimensions
+    setTimeout(updateTokenSize, 100);
+    // Restore lock toggle UI state from saved values
+    if (lockPositions) {
+      $btnLockPos.classList.add('active');
+      $btnLockPos.textContent = '🔒 Positions locked';
+    }
+    if (lockNames) {
+      $btnLockNames.classList.add('active');
+      $btnLockNames.textContent = '🔒 Names locked';
+      $arena.querySelectorAll('.seat-name').forEach(inp => inp.setAttribute('readonly', ''));
+    }
+    log('App loaded. Chrome or Edge required for Bluetooth.');
+    tryAutoConnect(); // silently reconnect to last known device on page load
+
+    // ── PWA ───────────────────────────────────────────────────────────────────────
+    const $btnInstall = document.getElementById('btn-install');
+    const $iosHint = document.getElementById('ios-hint');
+
+    // Register service worker (enables offline + Android install prompt)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => { });
+    }
+
+    // Android / Chrome: capture and show install button
+    let installPrompt = null;
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      installPrompt = e;
+      $btnInstall.style.display = 'inline-block';
+    });
+    $btnInstall.addEventListener('click', async () => {
+      if (!installPrompt) return;
+      installPrompt.prompt();
+      const { outcome } = await installPrompt.userChoice;
+      if (outcome === 'accepted') $btnInstall.style.display = 'none';
+      installPrompt = null;
+    });
+    window.addEventListener('appinstalled', () => {
+      $btnInstall.style.display = 'none';
+      installPrompt = null;
+    });
+
+    // iOS Safari: show "Add to Home Screen" hint if not already installed
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isStandalone = window.navigator.standalone === true;
+    if (isIOS && !isStandalone) {
+      $iosHint.style.display = 'block';
+    }
+  </script>
+
+</body>
+
+</html>
